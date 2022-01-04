@@ -1,4 +1,20 @@
-module Ht16k33 where
+module Ht16k33 (
+    setBrightness
+  , writeSingleByte
+  , writeDisplayBuffer
+  , entireDisplayBuffer
+  , blink2Hz
+  , blinkOff
+  , blink1Hz
+  , blinkHalfHz
+  , displayOn
+  , displayOff
+  , displaySetup
+  , oscillatorOff
+  , oscillatorOn
+  , systemSetup
+  )
+where
 
 import System.RaspberryPi.GPIO
 import Control.Monad
@@ -14,16 +30,33 @@ import Data.Word
 address :: Address
 address = 0x70
 
-ht16k33_blink_cmd = 0x80
-ht16k33_blink_displayon = 0x01
-ht16k33_blink_off = 0x00
-ht16k33_blink_2hz = 0x02
-ht16k33_blink_1hz = 0x04
-ht16k33_blink_halfhz = 0x06
+newtype BlinkFreq = BlinkFreq { getWord8 :: Word8}
+ deriving (Eq,Show)
 
-ht16k33_system_setup = 0x20
-ht16k33_oscillaor = 0x01
-ht16k33_cmd_brightness = 0xe0
+blinkOff = BlinkFreq 0x00
+blink2Hz = BlinkFreq 0x02
+blink1Hz = BlinkFreq 0x04
+blinkHalfHz = BlinkFreq 0x06
+
+newtype DisplayStatus = DisplayStatus { getWord :: Word8}
+ deriving (Show)
+displayOn = DisplayStatus 0x01
+displayOff = DisplayStatus 0x00
+
+displaySetupCmd = 0x80
+systemSetupCmd = 0x20
+brightnessCmd = 0xE0
+
+newtype OscillatorStatus = OscillatorStatus {getVal :: Word8}
+ deriving (Show)
+oscillatorOn = OscillatorStatus 0x01
+oscillatorOff = OscillatorStatus 0x00
+
+displaySetup :: DisplayStatus -> BlinkFreq -> DisplayBuffer ()
+displaySetup s b = writeSingleByte (displaySetupCmd .|. getWord s .|. getWord8 b) 
+
+systemSetup :: OscillatorStatus -> DisplayBuffer ()
+systemSetup s = writeSingleByte (systemSetupCmd .|. getVal s)
 
 type DisplayBufferState = [Word8]
 type DisplayBuffer = StateT DisplayBufferState IO
@@ -36,7 +69,7 @@ setBrightness :: Word8 -> DisplayBuffer ()
 setBrightness b
     | (b > 15)  = go 15
     | otherwise = go b
-    where go x = writeSingleByte (0xE0 .|. x) --0xEX is the magic word for brightness
+    where go x = writeSingleByte (brightnessCmd .|. x)
 
 shortDelay :: DisplayBuffer ()
 shortDelay = liftIO $ threadDelay 200000
@@ -50,6 +83,10 @@ writeDisplayBuffer = do
     displayBufferState <- get
     liftIO $ writeI2C address (toI2cWords displayBufferState)
 
-
+-- 0x00 is the location in ram to start writing (I think) we always use it as we always write the full 16 bytes
 toI2cWords :: DisplayBufferState -> BS.ByteString
 toI2cWords s = BS.pack $ 0x00 : s
+
+turnOff :: DisplayBuffer ()
+turnOff = do writeSingleByte 0x20
+             writeSingleByte 0x80

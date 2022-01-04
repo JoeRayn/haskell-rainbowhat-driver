@@ -4,32 +4,42 @@ import Control.Concurrent
 import Control.Monad
 import System.RaspberryPi.GPIO
 import Data.Word
+import Data.Bits
 import Ht16k33
+import AlphaNumDisplay
 -- import System.Hardware.WiringPi
 import Data.List
 import Led
 import Control.Monad.State
+import Data.Time.LocalTime
+import Data.Time.Format
 -- import Apa102
 
 -- main :: IO ()
 main = withGPIO . withI2C . (flip evalStateT (entireDisplayBuffer 0x00)) $ do
-    writeSingleByte 0x20 -- switches on the internal oscillator of the LED backpack
-    writeSingleByte 0x80 -- turns on display, sets blink rate to "not blinking"
-    -- writeSingleByte 0xEF -- sets brightness to maximum 
-    -- put $ entireDisplayBuffer 0x00
-    -- shortDelay
-    -- writeDisplayBuffer
-    -- shortDelay
-    -- modify (\x ->  [0x3E, 0x05])--switches all pixels to Off
-    -- shortDelay 
-    -- writeDisplayBuffer
-        --fill up the entire array pixel by pixel, waiting a bit after each one
-        --some wild multicolor stuff
-        -- a bit of dimming
-    -- forever $ forM_ leds $ \x -> do
-     --     digitalWrite x HIGH
-     --     threadDelay 20000
-     --     threadDelay 20000
-     --     digitalWrite x LOW
-     
+    initDisplay 
+    forever $ do
+       now <- getCurrentTimeString
+       put (encodeString now)
+       liftIO $ threadDelay 1000000
+       writeDisplayBuffer
 
+getCurrentTimeString = do
+    now <- liftIO $ getZonedTime
+    return $ formatTime defaultTimeLocale "%H%M" now 
+
+initDisplay = do   
+    systemSetup oscillatorOn
+    displaySetup displayOn blinkOff
+    setBrightness 8
+    writeDisplayBuffer
+
+encodeWord16 :: Word16 -> [Word8]
+encodeWord16 x = map fromIntegral [ x .&. 0xFF, (x .&. 0xFF00) `shiftR` 8 ]
+
+encodeString :: String -> [Word8]
+encodeString = concat . map encodeWord16 . fmap lookupChar
+
+turnOffDisplay = do
+  systemSetup oscillatorOff
+  displaySetup displayOff blinkOff
