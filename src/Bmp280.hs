@@ -2,6 +2,8 @@ module Bmp280
 where
 
 import System.RaspberryPi.GPIO
+import Data.Bits
+import Data.Word
 
 address :: Address
 address = 0x77
@@ -11,6 +13,8 @@ osrsT = 5
 osrsP = 5
 filter = 4
 tSB = 4
+config = (tSB `shiftL` 5) .&. (filter `shiftL` 2)                
+ctrlMeas = (osrsT `shiftL`  5) + (osrsP `shiftL` 2) + prowerMode
 
 
 register_dig_t1 = 0x88
@@ -37,3 +41,8 @@ register_tempdata_xlsb = 0xfc
 register_pressdata_msb = 0xf7
 register_pressdata_lsb = 0xf8
 register_pressdata_xlsb = 0xf9
+
+setup :: IO([Word8])
+setup = do writeI2C address register_softreset (BS.singleton 0xB6)
+           
+            
