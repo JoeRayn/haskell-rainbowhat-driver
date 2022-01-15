@@ -13,10 +13,13 @@ import Led
 import Control.Monad.State
 import Data.Time.LocalTime
 import Data.Time.Format
--- import Apa102
+import Apa102
 
--- main :: IO ()
-main = withGPIO . withI2C . (flip evalStateT (entireDisplayBuffer 0x00)) $ do
+
+main :: IO ()
+main = runApa102
+
+runClock = withGPIO . withI2C . (flip evalStateT (entireDisplayBuffer 0x00)) $ do
     initDisplay 
     forever $ do
        now <- getCurrentTimeString

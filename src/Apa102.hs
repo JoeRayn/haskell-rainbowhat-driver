@@ -1,3 +1,4 @@
+{-# LANGUAGE BinaryLiterals #-}
 module Apa102 where
 
 import System.RaspberryPi.GPIO
@@ -7,33 +8,59 @@ import Data.Bits
 import qualified Data.ByteString as BS
 import Data.Word
 
-
--- ToDo read about the SPI https://learn.sparkfun.com/tutorials/serial-peripheral-interface-spi
--- the python seems to actually treat the them a normal GPIO pins and does not actually use the spi protocal i.e. manually pusling the clock. I dont think that is what real SPI should be however need to read more
-
 {- corisponds to gpio pin 8 -}
 chipSelectPin = CS0
 
 {- trasfer 1 byte on MOSI pin. This seem to be the one used in the python libary, corrisponds to GPIO pin 10 in python library -}
 trasferMOSI = transferSPI
 
--- I think we either need these GPIO pins or use the SPI function and pins but not both, in any case these value names now match (round abouts) the python library 
-clockPin = Pin23
-chipSelectPinGpio = Pin24
-dataPin = Pin19
+type Pixel = (Word8, Word8, Word8, Word8)
 
+numPixels = 7
+defaultBrightness = 1
 
+pix ::  Word8 -> Word8 -> Word8 -> Pixel
+pix r g b = (r, g, b, defaultBrightness)
 
--- numPixels = 7
--- brightness = 7
+red = pix 50 0 0
+yellow = pix 50 50 0 
+pink = pix 50 10 12
+green = pix 0 50 0
+purple = pix 50 0 50
+orange = pix 50 22 0
+blue = pix 0 0 50
 
--- pixels = replicate numPixels (0, 0, 0, brightness)
-
--- type Pixels = (Int, Int, Int, Double)
-
--- clear :: Pixels -> Pixels
--- clear (_, _, _, brightness) = (0, 0, 0, brightness)
+rainbow :: [Pixel]
+rainbow = [red, yellow, pink, green, purple, orange, blue]
 
 runApa102 = withGPIO . withSPI $ do
+  setUp
+  writePixels rainbow
+
+
+setUp :: IO ()
+setUp = do
   chipSelectSPI chipSelectPin
+  setChipSelectPolaritySPI CS0 False -- ChipSelect is active low for transaction
+  setBitOrderSPI MSBFirst -- Copy a comment in online java tutorial, this is the MSBFirst is the default but thought I would make it explicet
+  setDataModeSPI (True, False) -- mode2 apparently worked out by someone else by trail and error
+  -- setClockDividerSPI Word16 -- clock speed should be 1Mhz dont know how to set that as a Word16. probally just 1000000. just leave it as default for now.
+
+startFrame :: [Word8]
+startFrame = replicate 4 0
+  
+endFrame :: [Word8]
+endFrame = replicate 5 0 -- atleast 36 bits
+
+writePixels :: [Pixel] -> IO ()
+writePixels xs = transferManySPI (startFrame ++ dataFrame ++ endFrame) >> return ()
+  where dataFrame = concat $ map pixel2Bytes xs
+
+pixel2Bytes :: Pixel -> [Word8]
+pixel2Bytes (red, green, blue, brightness) = [ 0b11100000 .|. brightness, blue, green ,red] 
+
+
+
+
+
 
