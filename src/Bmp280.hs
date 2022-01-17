@@ -4,9 +4,12 @@ where
 import System.RaspberryPi.GPIO
 import Data.Bits
 import Data.Word
+import Data.Bytestring
 
 address :: Address
 address = 0x77
+
+QNH = 1020
 
 powerMode = 3
 osrsT = 5
@@ -15,7 +18,6 @@ filter = 4
 tSB = 4
 config = (tSB `shiftL` 5) .&. (filter `shiftL` 2)                
 ctrlMeas = (osrsT `shiftL`  5) + (osrsP `shiftL` 2) + prowerMode
-
 
 register_dig_t1 = 0x88
 register_dig_t2 = 0x8a
@@ -42,7 +44,9 @@ register_pressdata_msb = 0xf7
 register_pressdata_lsb = 0xf8
 register_pressdata_xlsb = 0xf9
 
-setup :: IO([Word8])
-setup = do writeI2C address register_softreset (BS.singleton 0xB6)
+setup :: IO(Maybe [Word8])
+setup = do
+  if readI2C address register_chipid == pack 0x58 then Nothing else
+  writeI2C address register_softreset (BS.singleton 0xB6)
            
             
