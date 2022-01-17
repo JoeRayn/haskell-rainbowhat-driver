@@ -4,20 +4,19 @@ where
 import System.RaspberryPi.GPIO
 import Data.Bits
 import Data.Word
-import Data.Bytestring
-
+import qualified Data.ByteString as BS
 address :: Address
 address = 0x77
 
-QNH = 1020
+qnh = 1020
 
 powerMode = 3
 osrsT = 5
 osrsP = 5
-filter = 4
+filterV = 4
 tSB = 4
-config = (tSB `shiftL` 5) .&. (filter `shiftL` 2)                
-ctrlMeas = (osrsT `shiftL`  5) + (osrsP `shiftL` 2) + prowerMode
+config = (tSB `shiftL` 5) .&. (filterV `shiftL` 2) :: Word8                
+ctrlMeas = (osrsT `shiftL`  5) + (osrsP `shiftL` 2) + powerMode :: Word8
 
 register_dig_t1 = 0x88
 register_dig_t2 = 0x8a
@@ -44,9 +43,13 @@ register_pressdata_msb = 0xf7
 register_pressdata_lsb = 0xf8
 register_pressdata_xlsb = 0xf9
 
-setup :: IO(Maybe [Word8])
-setup = do
-  if readI2C address register_chipid == pack 0x58 then Nothing else
-  writeI2C address register_softreset (BS.singleton 0xB6)
-           
+-- setup :: IO(Maybe [Word8])
+-- this is wrong the readI2C and writeI2C funtions do not take a register just the address like the python library I was basing this on. I think you need to first write the register and then read or write but I need to read up on the I2C protocall or look into the underling python implementation to see what it does with the register. 
+-- setup = do
+--   if readI2C address register_chipid == BS.singleton 0x58
+--     then
+--        return Nothing
+--     else
+--        writeI2C address (BS.singleton register_softreset) (BS.singleton 0xB6)
+--        return undefined 
             
