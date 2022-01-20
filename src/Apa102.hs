@@ -46,12 +46,14 @@ setUp = do
   setDataModeSPI (True, False) -- mode2 apparently worked out by someone else by trail and error
   -- setClockDividerSPI Word16 -- clock speed should be 1Mhz dont know how to set that as a Word16. probally just 1000000. just leave it as default for now.
 
+-- | 32 bits required at the start of the message frame
 startFrame :: [Word8]
 startFrame = replicate 4 0
   
 endFrame :: [Word8]
 endFrame = replicate 5 0 -- atleast 36 bits
 
+-- | Wrap Pixels in a frame and send to LED strip to be displayed, I need to check if this will ever raise an exception. 
 writePixels :: [Pixel] -> IO ()
 writePixels xs = transferManySPI (startFrame ++ dataFrame ++ endFrame) >> return ()
   where dataFrame = concat $ map pixel2Bytes xs
