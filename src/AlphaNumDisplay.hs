@@ -1,24 +1,24 @@
 {-# LANGUAGE BinaryLiterals #-}
 module AlphaNumDisplay (lookupChar) where
 
-import Ht16k33
-import Control.Monad
-import Control.Monad.State
-import Data.Time.LocalTime
-import Data.Time.Format
-import Data.Word
-import Data.Maybe
-import Data.Bits
-import System.RaspberryPi.GPIO
-import Control.Concurrent
+import           Control.Concurrent
+import           Control.Monad
+import           Control.Monad.State
+import           Data.Bits
+import           Data.Maybe
+import           Data.Time.Format
+import           Data.Time.LocalTime
+import           Data.Word
+import           Ht16k33
+import           System.RaspberryPi.GPIO
 
 data Pos = A | B | C | D
   deriving (Show)
 
-lookupChar :: Char -> Word16 
+lookupChar :: Char -> Word16
 lookupChar c = fromMaybe 0x0000 (lookup c charMap)
 
-initDisplay = do   
+initDisplay = do
     systemSetup oscillatorOn
     displaySetup displayOn blinkOff
     setBrightness 8
@@ -35,7 +35,7 @@ turnOffDisplay = do
   displaySetup displayOff blinkOff
 
 runClock = withGPIO . withI2C . (flip evalStateT (entireDisplayBuffer 0x00)) $ do
-    initDisplay 
+    initDisplay
     forever $ do
        now <- getCurrentTimeString
        put (encodeString now)
@@ -44,7 +44,7 @@ runClock = withGPIO . withI2C . (flip evalStateT (entireDisplayBuffer 0x00)) $ d
 
 getCurrentTimeString = do
     now <- liftIO $ getZonedTime
-    return $ formatTime defaultTimeLocale "%H%M" now 
+    return $ formatTime defaultTimeLocale "%H%M" now
 
 charMap :: [(Char, Word16)]
 charMap = [(' ', 0b0000000000000000),

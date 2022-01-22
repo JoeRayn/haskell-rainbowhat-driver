@@ -1,10 +1,10 @@
-module Bmp280 
+module Bmp280
 where
 
-import System.RaspberryPi.GPIO
-import Data.Bits
-import Data.Word
-import qualified Data.ByteString as BS
+import           Data.Bits
+import qualified Data.ByteString         as BS
+import           Data.Word
+import           System.RaspberryPi.GPIO
 address :: Address
 address = 0x77
 
@@ -15,7 +15,7 @@ osrsT = 5
 osrsP = 5
 filterV = 4
 tSB = 4
-config = (tSB `shiftL` 5) .&. (filterV `shiftL` 2) :: Word8                
+config = (tSB `shiftL` 5) .&. (filterV `shiftL` 2) :: Word8
 ctrlMeas = (osrsT `shiftL`  5) + (osrsP `shiftL` 2) + powerMode :: Word8
 
 register_dig_t1 = 0x88
@@ -44,12 +44,12 @@ register_pressdata_lsb = 0xf8
 register_pressdata_xlsb = 0xf9
 
 -- setup :: IO(Maybe [Word8])
--- this is wrong the readI2C and writeI2C funtions do not take a register just the address like the python library I was basing this on. I think you need to first write the register and then read or write but I need to read up on the I2C protocall or look into the underling python implementation to see what it does with the register. 
+-- this is wrong the readI2C and writeI2C funtions do not take a register just the address like the python library I was basing this on. I think you need to first write the register and then read or write but I need to read up on the I2C protocall or look into the underling python implementation to see what it does with the register.
 -- setup = do
 --   if readI2C address register_chipid == BS.singleton 0x58
 --     then
 --        return Nothing
 --     else
 --        writeI2C address (BS.singleton register_softreset) (BS.singleton 0xB6)
---        return undefined 
-            
+--        return undefined
+

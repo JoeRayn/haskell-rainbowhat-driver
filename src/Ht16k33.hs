@@ -16,16 +16,15 @@ module Ht16k33 (
   )
 where
 
-import System.RaspberryPi.GPIO
-import Control.Monad
-import Control.Monad.State
-import Data.Word
-import Data.Array
-import Data.List
-import qualified Data.ByteString as BS
-import Data.Bits
-import Control.Concurrent
-import Data.Word
+import           Control.Concurrent
+import           Control.Monad
+import           Control.Monad.State
+import           Data.Array
+import           Data.Bits
+import qualified Data.ByteString         as BS
+import           Data.List
+import           Data.Word
+import           System.RaspberryPi.GPIO
 
 address :: Address
 address = 0x70
@@ -53,7 +52,7 @@ oscillatorOn = OscillatorStatus 0x01
 oscillatorOff = OscillatorStatus 0x00
 
 displaySetup :: DisplayStatus -> BlinkFreq -> DisplayBuffer ()
-displaySetup s b = writeSingleByte (displaySetupCmd .|. getWord s .|. getWord8 b) 
+displaySetup s b = writeSingleByte (displaySetupCmd .|. getWord s .|. getWord8 b)
 
 systemSetup :: OscillatorStatus -> DisplayBuffer ()
 systemSetup s = writeSingleByte (systemSetupCmd .|. getVal s)

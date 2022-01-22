@@ -1,7 +1,7 @@
 module Main where
 
-import AlphaNumDisplay
-import Apa102
+import           AlphaNumDisplay
+import           Apa102
 
 
 main :: IO ()

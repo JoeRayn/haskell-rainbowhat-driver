@@ -1,12 +1,12 @@
 {-# LANGUAGE BinaryLiterals #-}
 module Apa102 where
 
-import System.RaspberryPi.GPIO
-import Control.Concurrent
-import Control.Monad
-import Data.Bits
-import qualified Data.ByteString as BS
-import Data.Word
+import           Control.Concurrent
+import           Control.Monad
+import           Data.Bits
+import qualified Data.ByteString         as BS
+import           Data.Word
+import           System.RaspberryPi.GPIO
 
 {- corisponds to gpio pin 8 -}
 chipSelectPin = CS0
@@ -23,7 +23,7 @@ pix ::  Word8 -> Word8 -> Word8 -> Pixel
 pix r g b = (r, g, b, defaultBrightness)
 
 red = pix 50 0 0
-yellow = pix 50 50 0 
+yellow = pix 50 50 0
 pink = pix 50 10 12
 green = pix 0 50 0
 purple = pix 50 0 50
@@ -49,17 +49,17 @@ setUp = do
 -- | 32 bits required at the start of the message frame
 startFrame :: [Word8]
 startFrame = replicate 4 0
-  
+
 endFrame :: [Word8]
 endFrame = replicate 5 0 -- atleast 36 bits
 
--- | Wrap Pixels in a frame and send to LED strip to be displayed, I need to check if this will ever raise an exception. 
+-- | Wrap Pixels in a frame and send to LED strip to be displayed, I need to check if this will ever raise an exception.
 writePixels :: [Pixel] -> IO ()
 writePixels xs = transferManySPI (startFrame ++ dataFrame ++ endFrame) >> return ()
   where dataFrame = concat $ map pixel2Bytes xs
 
 pixel2Bytes :: Pixel -> [Word8]
-pixel2Bytes (red, green, blue, brightness) = [ 0b11100000 .|. brightness, blue, green ,red] 
+pixel2Bytes (red, green, blue, brightness) = [ 0b11100000 .|. brightness, blue, green ,red]
 
 
 
