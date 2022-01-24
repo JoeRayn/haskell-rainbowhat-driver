@@ -43,19 +43,23 @@ register_pressdata_msb = 0xf7
 register_pressdata_lsb = 0xf8
 register_pressdata_xlsb = 0xf9
 
+chipID = [0x58] :: [Word8]
 -- setup :: IO(Maybe [Word8])
 -- this is wrong the readI2C and writeI2C funtions do not take a register just the address like the python library I was basing this on. I think you need to first write the register and then read or write but I need to read up on the I2C protocall or look into the underling python implementation to see what it does with the register.
--- setup = do
---   if readI2C address register_chipid == BS.singleton 0x58
---     then
---        return Nothing
---     else
---        writeI2C address (BS.singleton register_softreset) (BS.singleton 0xB6)
---        return undefined
+bmp_setup = do
+  id <- readRegister address register_chipid
+  if id == chipID 
+    then
+       putStrLn "Success"
+    else
+       putStrLn "Fail"
+       -- writeI2C address (BS.singleton register_softreset) (BS.singleton 0xB6)
+       -- return undefined
 
+-- currently seems to segfault
 -- according to data sheet inorder to read a byte you first need to send a write with the register as data and then do a read
 readRegister :: Address -> Word8 -> IO([Word8])
 readRegister address register = do
   writeI2C address (BS.singleton register)
   output <- readI2C address 1
-  return $ unpack output
+  return $ BS.unpack output
