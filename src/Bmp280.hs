@@ -53,3 +53,9 @@ register_pressdata_xlsb = 0xf9
 --        writeI2C address (BS.singleton register_softreset) (BS.singleton 0xB6)
 --        return undefined
 
+-- according to data sheet inorder to read a byte you first need to send a write with the register as data and then do a read
+readRegister :: Address -> Word8 -> IO([Word8])
+readRegister address register = do
+  writeI2C address (BS.singleton register)
+  output <- readI2C address 1
+  return $ unpack output
