@@ -5,6 +5,7 @@ import           Data.Bits
 import qualified Data.ByteString         as BS
 import           Data.Word
 import           System.RaspberryPi.GPIO
+import           Control.Monad
 address :: Address
 address = 0x77
 
@@ -46,20 +47,15 @@ register_pressdata_xlsb = 0xf9
 chipID = [0x58] :: [Word8]
 -- setup :: IO(Maybe [Word8])
 -- this is wrong the readI2C and writeI2C funtions do not take a register just the address like the python library I was basing this on. I think you need to first write the register and then read or write but I need to read up on the I2C protocall or look into the underling python implementation to see what it does with the register.
+-- segfaults not sure why -- posiblilly bug in library the number of bytes to be allocated should be num + 1 maybe
 bmp_setup = do
-  id <- readRegister address register_chipid
-  if id == chipID 
-    then
-       putStrLn "Success"
-    else
-       putStrLn "Fail"
-       -- writeI2C address (BS.singleton register_softreset) (BS.singleton 0xB6)
-       -- return undefined
+  writeReadRSI2C address (BS.singleton 0xD0) 1 >> return ()
+  -- id <- BS.unpack <$> 
+  -- if id == chipID 
+  --   then
+  --      putStrLn "Success"
+  --   else
+  --      putStrLn "Fail"
+        -- writeI2C address (BS.singleton register_softreset) (BS.singleton 0xB6)
+        -- return undefined
 
--- currently seems to segfault
--- according to data sheet inorder to read a byte you first need to send a write with the register as data and then do a read
-readRegister :: Address -> Word8 -> IO([Word8])
-readRegister address register = do
-  writeI2C address (BS.singleton register)
-  output <- readI2C address 1
-  return $ BS.unpack output
