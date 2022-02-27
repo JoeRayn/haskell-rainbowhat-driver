@@ -1,0 +1,4 @@
+packages: */*.cabal
+
+package haskell-driver
+  debug-info: True
