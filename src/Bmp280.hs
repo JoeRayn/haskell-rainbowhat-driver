@@ -44,17 +44,17 @@ register_pressdata_msb = 0xf7
 register_pressdata_lsb = 0xf8
 register_pressdata_xlsb = 0xf9
 
-chipID = [0x58] :: [Word8]
+chipID = BS.singleton 0x58
 -- setup :: IO(Maybe [Word8])
 -- this is wrong the readI2C and writeI2C funtions do not take a register just the address like the python library I was basing this on. I think you need to first write the register and then read or write but I need to read up on the I2C protocall or look into the underling python implementation to see what it does with the register.
 -- segfaults not sure why -- posiblilly bug in library the number of bytes to be allocated should be num + 1 maybe
-bmp_setup = withGPIO . withI2C $ do writeReadRSI2C address (BS.singleton 0xD0) 1
-  -- id <- BS.unpack <$> 
-  -- if id == chipID 
-  --   then
-  --      putStrLn "Success"
-  --   else
-  --      putStrLn "Fail"
+bmp_setup = withGPIO . withI2C $ do
+  id <- writeReadRSI2C address (BS.singleton 0xD0) 1 
+  if id == chipID 
+     then
+       putStrLn "Success"
+     else
+       fail ("The bmp's verson register is incorrect, it should be " ++ (show $ BS.unpack chipID) ++ " but it is " ++ (show $ BS.unpack id))
         -- writeI2C address (BS.singleton register_softreset) (BS.singleton 0xB6)
         -- return undefined
 

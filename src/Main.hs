@@ -8,6 +8,4 @@ import           Bmp280
 
 main :: IO ()
 main = do
-   reg <- bmp_setup 
-   putStrLn $ show $ BS.unpack reg
-
+   bmp_setup
