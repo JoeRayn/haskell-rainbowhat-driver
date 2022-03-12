@@ -57,10 +57,10 @@ executable haskell-driver
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
 
-  -- Other library packages from which modules are imported.
+ -- Other library packages from which modules are imported.
   build-depends:       base >=4.11 && <4.12,
   		       wiringPi ^>=1.0.1.1,
-                       HPi ^>=0.7,
+                       HPi ==0.7.0,
                        mtl ^>=2.2.2,
                        bytestring ^>=0.10,
                        array ^>= 0.5,
