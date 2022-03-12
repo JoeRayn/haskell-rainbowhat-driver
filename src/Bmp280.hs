@@ -49,26 +49,31 @@ reset_command = 0xB6
 chipID = BS.singleton 0x58
 
 bmp_setup = withGPIO . withI2C $ do
-  id <- writeReadRSI2C address (BS.singleton register_chipid) 1 
-  if id == chipID 
-     then 
-       write_byte register_softreset reset_command 
-     else
-       fail ("The bmp's verson register is incorrect, it should be " ++ (show $ BS.unpack chipID) ++ " but it is " ++ (show $ BS.unpack id))
-        -- return undefined
+  checkVersion
+  softReset
+
 
 -- It is also posible write multipule bytes in a single operation by sending register data pairs but I am not implementing this
-write_byte :: Word8 -> Word8 -> IO()
-write_byte register dataByte = writeI2C address (BS.pack [register, dataByte])
-
-read_bytes :: Word8 -> Int -> IO(BS.ByteString)
-read_bytes register num = writeReadRSI2C address (BS.singleton register) num
+writeByte :: Word8 -> Word8 -> IO()
+writeByte register dataByte = writeI2C address (BS.pack [register, dataByte])
 
 
+readBytes :: Word8 -> Int -> IO(BS.ByteString)
+readBytes register num = writeReadRSI2C address (BS.singleton register) num
 
 
+softReset :: IO()
+softReset = writeByte register_softreset reset_command 
 
-
+-- Todo: dont just thow an error but do something nicer e.g. Left
+checkVersion :: IO()
+checkVersion = do
+  id <- readBytes register_chipid 1 
+  if id /= chipID 
+     then
+       fail ("The bmp's verson register is incorrect, it should be " ++ (show $ BS.unpack chipID) ++ " but it is " ++ (show $ BS.unpack id))
+     else
+       return ()
 
 
 
